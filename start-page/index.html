@@ -1,1 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Tab (Dark Theme)</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.2);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background-color: #202124;
+      color: #e8eaed;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.5s ease-in-out;
+    }
+    .main, .footer { position: relative; z-index: 1; }
+    .modal, #customizeModal { z-index: 2; }
 
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    .logo img {
+      width: 272px;
+      height: auto;
+      margin-bottom: 20px;
+      /* restored white logo */
+      filter: brightness(0) invert(1);
+    }
+    form {
+      width: 80%;
+      max-width: 584px;
+    }
+    .search-container {
+      position: relative;
+      width: 100%;
+    }
+    .search-container input {
+      width: 100%;
+      padding: 12px 50px;
+      font-size: 16px;
+      background-color: rgba(48,49,52,0.8);
+      border: 1px solid #5f6368;
+      border-radius: 24px;
+      outline: none;
+      color: #e8eaed;
+    }
+    .search-container input::placeholder {
+      color: #e8eaed;
+      opacity: 0.6;
+    }
+    .search-icon, .mic-icon {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 20px;
+      cursor: pointer;
+    }
+    .search-icon path { fill: #e8eaed; }
+    .search-icon { left: 16px; }
+    .mic-icon path { fill: #8ab4f8; }
+    .mic-icon { right: 16px; }
+
+    .shortcuts {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+      width: 90%;
+      max-width: 700px;
+    }
+    .shortcut {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #e8eaed;
+    }
+    .shortcut-icon {
+      width: 64px; height: 64px;
+      padding: 10%;
+      border-radius: 12px;
+      background-color: rgba(60,64,67,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .shortcut-icon img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      border-radius: inherit;
+    }
+    .shortcut-icon span { font-size: 24px; }
+
+    .edit-icon {
+      position: absolute; top: 0; right: 0;
+      transform: translate(25%, -25%);
+      background-color: #fff;
+      border-radius: 50%;
+      padding: 4px;
+      width: 20px; height: 20px;
+      cursor: pointer;
+    }
+    .edit-icon path { fill: #202124; }
+    .edit-icon:hover path { fill: #8ab4f8; }
+
+    .footer {
+      width: 100%;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #e8eaed;
+      flex-shrink: 0;
+    }
+    .footer a {
+      text-decoration: none;
+      color: #e8eaed;
+      margin: 0 8px;
+      cursor: pointer;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #303134;
+      padding: 20px;
+      border-radius: 8px;
+      color: #e8eaed;
+      width: 300px;
+    }
+    .modal-content h2 { margin: 0 0 16px; font-size: 18px; }
+    .modal-content label { display: block; margin-bottom: 8px; font-size: 14px; }
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      background: #202124;
+      border: 1px solid #5f6368;
+      border-radius: 4px;
+      color: #e8eaed;
+    }
+    .modal-content .btn {
+      padding: 8px 16px;
+      margin-right: 8px;
+      border: none; border-radius: 4px;
+      cursor: pointer;
+    }
+    .save-btn   { background: #8ab4f8; color: #202124; }
+    .cancel-btn { background: #5f6368; color: #e8eaed; }
+    .delete-btn { background: #d93025; color: #fff; display: none; }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="main">
+    <div class="logo">
+      <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google Logo"/>
+    </div>
+    <form id="searchForm" action="https://www.google.com/search" method="GET" target="_blank">
+      <div class="search-container">
+        <svg class="search-icon" viewBox="0 0 24 24" onclick="searchForm.submit()">
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 
+                   6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 
+                   4.99L20.49 19l-4.99-5zM9.5 14A4.5 4.5 0 119.5 5a4.5 
+                   4.5 0 010 9z"/>
+        </svg>
+        <input type="text" name="q" placeholder="Search Google or type a URL"/>
+        <svg class="mic-icon" viewBox="0 0 24 24">
+          <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9
+                   4.34 9 6v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17.3 11c0 2.89-2.36 5.27-5.27 5.27S6.73 
+                   13.89 6.73 11H5c0 3.59 2.61 6.56 6 7.31V21h2v-2.69c3.39
+                   -.75 6-3.72 6-7.31h-1.7z"/>
+        </svg>
+      </div>
+    </form>
+
+    <div class="shortcuts" id="shortcutsContainer">
+      <div id="addShortcut" class="shortcut">
+        <div class="shortcut-icon">+</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="left-links">
+      <a href="https://github.com/k-adm/start-page" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="right-links"><a id="customizeBtn">Customize</a></div>
+  </div>
+
+  <!-- Customize Modal -->
+  <div id="customizeModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Customize Background</h2>
+      <label for="unsplashKeyInput">Unsplash API Key:</label>
+      <input type="text" id="unsplashKeyInput" placeholder="Enter your Unsplash Access Key"/>
+      <label for="searchQueryInput">Search Query:</label>
+      <input type="text" id="searchQueryInput" placeholder="nature background"/>
+      <button id="saveCustomizeBtn" class="btn save-btn">Save</button>
+      <button id="cancelCustomizeBtn" class="btn cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Shortcut Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Shortcut</h2>
+      <label for="siteName">Name:</label>
+      <input type="text" id="siteName" placeholder="Website Name"/>
+      <label for="siteURL">URL:</label>
+      <input type="text" id="siteURL" placeholder="https://example.com"/>
+      <button id="saveBtn" class="btn save-btn">Save</button>
+      <button id="cancelBtn" class="btn cancel-btn">Cancel</button>
+      <button id="deleteBtn" class="btn delete-btn">Delete</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY       = 'shortcuts';
+    const KEY_STORAGE       = 'unsplashKey';
+    const QUERY_STORAGE     = 'searchQuery';
+    let UNSPLASH_ACCESS_KEY = localStorage.getItem(KEY_STORAGE)    || '';
+    let QUERY               = localStorage.getItem(QUERY_STORAGE) || 'nature background';
+
+    const addBtn            = document.getElementById('addShortcut');
+    const container         = document.getElementById('shortcutsContainer');
+    const modal             = document.getElementById('modal');
+    const modalTitle        = document.getElementById('modalTitle');
+    const saveBtn           = document.getElementById('saveBtn');
+    const cancelBtn         = document.getElementById('cancelBtn');
+    const deleteBtn         = document.getElementById('deleteBtn');
+    const nameInput         = document.getElementById('siteName');
+    const urlInput          = document.getElementById('siteURL');
+
+    const customizeBtn      = document.getElementById('customizeBtn');
+    const customizeModal    = document.getElementById('customizeModal');
+    const unsplashKeyInput  = document.getElementById('unsplashKeyInput');
+    const searchQueryInput  = document.getElementById('searchQueryInput');
+    const saveCustomizeBtn  = document.getElementById('saveCustomizeBtn');
+    const cancelCustomizeBtn= document.getElementById('cancelCustomizeBtn');
+
+    let isEditing = false, currentElement = null;
+
+    function getFaviconUrl(siteUrl) {
+      try {
+        const host = new URL(siteUrl).hostname;
+        return `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveToLocalStorage() {
+      const data = Array.from(container.querySelectorAll('.shortcut'))
+        .filter(el => el.id !== 'addShortcut')
+        .map(el => ({
+          name: el.querySelector('.shortcut-label').textContent,
+          url: el.href
+        }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadShortcuts() {
+      const json = localStorage.getItem(STORAGE_KEY);
+      if (!json) return;
+      JSON.parse(json).forEach(item => addShortcut(item.name, item.url));
+    }
+
+    function addEditIcon(el) {
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg   = document.createElementNS(svgNS, 'svg');
+      svg.classList.add('edit-icon');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      const p1    = document.createElementNS(svgNS, 'path');
+      p1.setAttribute('d', 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z');
+      const p2    = document.createElementNS(svgNS, 'path');
+      p2.setAttribute('d','M20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34'+
+                   'a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z');
+      svg.append(p1,p2);
+      svg.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        openModal(true, el);
+      });
+      el.appendChild(svg);
+    }
+
+    function openModal(edit = false, el = null) {
+      isEditing = edit; currentElement = el;
+      deleteBtn.style.display = edit ? 'inline-block' : 'none';
+      modalTitle.textContent  = edit ? 'Edit Shortcut' : 'Add Shortcut';
+      if (edit && el) {
+        nameInput.value = el.querySelector('.shortcut-label').textContent;
+        urlInput.value  = el.href;
+      } else {
+        nameInput.value = ''; urlInput.value = '';
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() { modal.classList.add('hidden'); }
+
+    function addShortcut(name, url) {
+      const a = document.createElement('a');
+      a.href      = url; a.className = 'shortcut'; a.target = '_blank';
+      const iconDiv = document.createElement('div'); iconDiv.className = 'shortcut-icon';
+      const fav = getFaviconUrl(url);
+      if (fav) {
+        const img = document.createElement('img'); img.src = fav; img.alt = `${name} favicon`;
+        iconDiv.appendChild(img);
+      } else {
+        const span = document.createElement('span'); span.textContent = name.charAt(0).toUpperCase();
+        iconDiv.appendChild(span);
+      }
+      const labelDiv = document.createElement('div'); labelDiv.className = 'shortcut-label';
+      labelDiv.textContent = name;
+      a.append(iconDiv, labelDiv);
+      addEditIcon(a);
+      container.insertBefore(a, addBtn);
+      saveToLocalStorage();
+    }
+
+    saveBtn.addEventListener('click', () => {
+      let name = nameInput.value.trim(), url = urlInput.value.trim();
+      if (!name || !url) return alert('Enter both name and URL');
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      if (isEditing && currentElement) {
+        currentElement.href = url;
+        currentElement.querySelector('.shortcut-label').textContent = name;
+        const icon = currentElement.querySelector('.shortcut-icon');
+        icon.innerHTML = '';
+        const fav = getFaviconUrl(url);
+        if (fav) {
+          const img = document.createElement('img'); img.src = fav; img.alt = `${name} favicon`;
+          icon.appendChild(img);
+        } else {
+          const span = document.createElement('span'); span.textContent = name.charAt(0).toUpperCase();
+          icon.appendChild(span);
+        }
+        saveToLocalStorage();
+      } else {
+        addShortcut(name, url);
+      }
+      closeModal();
+    });
+
+    cancelBtn.addEventListener('click', closeModal);
+    deleteBtn.addEventListener('click', () => {
+      if (isEditing && currentElement) {
+        currentElement.remove();
+        saveToLocalStorage();
+        closeModal();
+      }
+    });
+
+    addBtn.addEventListener('click', () => openModal(false));
+
+    customizeBtn.addEventListener('click', () => {
+      unsplashKeyInput.value = UNSPLASH_ACCESS_KEY;
+      searchQueryInput.value = QUERY;
+      customizeModal.classList.remove('hidden');
+    });
+    cancelCustomizeBtn.addEventListener('click', () => customizeModal.classList.add('hidden'));
+    saveCustomizeBtn.addEventListener('click', () => {
+      UNSPLASH_ACCESS_KEY = unsplashKeyInput.value.trim();
+      QUERY               = searchQueryInput.value.trim() || 'nature background';
+      localStorage.setItem(KEY_STORAGE,   UNSPLASH_ACCESS_KEY);
+      localStorage.setItem(QUERY_STORAGE, QUERY);
+      customizeModal.classList.add('hidden');
+      updateBackground();
+    });
+
+    async function updateBackground() {
+      try {
+        const res = await fetch(
+          `https://api.unsplash.com/search/photos?query=${encodeURIComponent(QUERY)}&orientation=landscape&per_page=30`,
+          { headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` } }
+        );
+        const data = await res.json();
+        if (data.results && data.results.length) {
+          const pick = data.results[Math.floor(Math.random() * data.results.length)];
+          const url  = `${pick.urls.raw}&w=1920&h=1080&fit=crop`;
+          document.body.style.backgroundImage = `url('${url}')`;
+        }
+      } catch(err) {
+        console.error('Unsplash fetch error:', err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateBackground();
+      loadShortcuts();
+      Array.from(container.querySelectorAll('.shortcut')).forEach(el => {
+        if (el.id !== 'addShortcut') addEditIcon(el);
+      });
+    });
+  </script>
+</body>
+</html>
