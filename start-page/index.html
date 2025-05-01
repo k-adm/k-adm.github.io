@@ -5,186 +5,138 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>New Tab (Dark Theme)</title>
   <style>
+    :root { --icon-size: 64px; }
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0;
       width: 100%; height: 100%;
-      overflow: hidden;
-      position: relative;
+      overflow: hidden; position: relative;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 13px; font-weight: 600;
     }
     body::before {
       content: '';
-      position: absolute;
-      top: 0; left: 0;
+      position: absolute; top: 0; left: 0;
       width: 100%; height: 100%;
       background-color: rgba(0,0,0,0.2);
-      pointer-events: none;
-      z-index: 0;
+      pointer-events: none; z-index: 0;
     }
     body {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      background-color: #202124;
-      color: #e8eaed;
-      background-size: cover;
-      background-position: center;
+      display: flex; flex-direction: column;
+      justify-content: space-between; align-items: center;
+      background-color: #202124; color: #e8eaed;
+      background-size: cover; background-position: center;
       transition: background-image 0.5s ease-in-out;
     }
     .main, .footer { position: relative; z-index: 1; }
     .modal, #customizeModal { z-index: 2; }
 
     .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      flex: 1; display: flex;
+      flex-direction: column; justify-content: center; align-items: center;
       width: 100%;
     }
     .logo img {
-      width: 272px;
-      height: auto;
-      margin-bottom: 20px;
-      /* restored white logo */
+      width: 272px; height: auto; margin-bottom: 20px;
       filter: brightness(0) invert(1);
     }
-    form {
-      width: 80%;
-      max-width: 584px;
-    }
-    .search-container {
-      position: relative;
-      width: 100%;
-    }
+    form { width: 80%; max-width: 584px; }
+    .search-container { position: relative; width: 100%; }
     .search-container input {
-      width: 100%;
-      padding: 12px 50px;
-      font-size: 16px;
+      width: 100%; padding: 12px 50px; font: inherit;
       background-color: rgba(48,49,52,0.8);
-      border: 1px solid #5f6368;
-      border-radius: 24px;
-      outline: none;
-      color: #e8eaed;
+      border: 1px solid #5f6368; border-radius: 24px;
+      outline: none; color: #e8eaed;
     }
-    .search-container input::placeholder {
-      color: #e8eaed;
-      opacity: 0.6;
-    }
+    .search-container input::placeholder { color: #e8eaed; opacity: 0.6; }
     .search-icon, .mic-icon {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 20px; height: 20px;
-      cursor: pointer;
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 20px; height: 20px; cursor: pointer;
     }
+    .search-icon { left: 16px; } .mic-icon { right: 16px; }
     .search-icon path { fill: #e8eaed; }
-    .search-icon { left: 16px; }
-    .mic-icon path { fill: #8ab4f8; }
-    .mic-icon { right: 16px; }
+    .mic-icon path   { fill: #8ab4f8; }
 
     .shortcuts {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       gap: 24px;
-      margin-top: 40px;
-      width: 90%;
-      max-width: 700px;
+      margin: 40px auto 0;      /* center horizontally */
+      width: auto;              /* auto width to fit content */
+      justify-content: center;  /* center grid items */
     }
     .shortcut {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-decoration: none;
-      color: #e8eaed;
+      position: relative; display: flex;
+      flex-direction: column; align-items: center;
+      text-decoration: none; color: #e8eaed;
     }
+    #addShortcut .shortcut-icon { cursor: pointer; }
     .shortcut-icon {
-      width: 64px; height: 64px;
-      padding: 10%;
-      border-radius: 12px;
+      width: var(--icon-size); height: var(--icon-size);
+      padding: 20%; border-radius: 12px;
       background-color: rgba(60,64,67,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      margin-bottom: 8px;
+      display: flex; justify-content: center; align-items: center;
+      overflow: hidden; margin-bottom: 8px;
     }
     .shortcut-icon img {
-      width: 100%; height: 100%;
-      object-fit: contain;
+      width: 100%; height: 100%; object-fit: contain;
       border-radius: inherit;
     }
     .shortcut-icon span { font-size: 24px; }
 
+    .shortcut-label {
+      width: calc(var(--icon-size) * 1.2);
+      text-align: center; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+
     .edit-icon {
+      display: none;
       position: absolute; top: 0; right: 0;
       transform: translate(25%, -25%);
-      background-color: #fff;
-      border-radius: 50%;
-      padding: 4px;
-      width: 20px; height: 20px;
+      background-color: #fff; border-radius: 50%;
+      padding: 4px; width: 20px; height: 20px;
       cursor: pointer;
     }
-    .edit-icon path { fill: #202124; }
-    .edit-icon:hover path { fill: #8ab4f8; }
+    .shortcut:hover .edit-icon { display: block; }
+    .edit-icon path         { fill: #202124; }
+    .edit-icon:hover path   { fill: #8ab4f8; }
 
     .footer {
-      width: 100%;
-      padding: 12px 24px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: #e8eaed;
-      flex-shrink: 0;
+      width: 100%; padding: 12px 24px;
+      display: flex; justify-content: space-between;
+      color: #e8eaed; flex-shrink: 0;
     }
     .footer a {
-      text-decoration: none;
-      color: #e8eaed;
-      margin: 0 8px;
-      cursor: pointer;
+      text-decoration: none; color: #e8eaed;
+      margin: 0 8px; cursor: pointer;
     }
 
     .modal {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
     }
     .modal-content {
-      background-color: #303134;
-      padding: 20px;
-      border-radius: 8px;
-      color: #e8eaed;
-      width: 300px;
+      background-color: #303134; padding: 20px;
+      border-radius: 8px; color: #e8eaed; width: 300px;
     }
-    .modal-content h2 { margin: 0 0 16px; font-size: 18px; }
-    .modal-content label { display: block; margin-bottom: 8px; font-size: 14px; }
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 16px;
-      background: #202124;
-      border: 1px solid #5f6368;
-      border-radius: 4px;
-      color: #e8eaed;
+    .modal-content h2     { margin: 0 0 16px; font-size: 18px; }
+    .modal-content label  { display: block; margin-bottom: 8px; font-size: 14px; }
+    .modal-content input  {
+      width: 100%; padding: 8px; margin-bottom: 16px;
+      background: #202124; border: 1px solid #5f6368;
+      border-radius: 4px; color: #e8eaed; font: inherit;
     }
-    .modal-content .btn {
-      padding: 8px 16px;
-      margin-right: 8px;
-      border: none; border-radius: 4px;
-      cursor: pointer;
+    .modal-content .btn   {
+      padding: 8px 16px; margin-right: 8px;
+      border: none; border-radius: 4px; cursor: pointer; font: inherit;
     }
     .save-btn   { background: #8ab4f8; color: #202124; }
     .cancel-btn { background: #5f6368; color: #e8eaed; }
     .delete-btn { background: #d93025; color: #fff; display: none; }
-
-    .hidden { display: none; }
+    .hidden     { display: none; }
   </style>
 </head>
 <body>
@@ -195,17 +147,16 @@
     <form id="searchForm" action="https://www.google.com/search" method="GET" target="_blank">
       <div class="search-container">
         <svg class="search-icon" viewBox="0 0 24 24" onclick="searchForm.submit()">
-          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 
-                   6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 
-                   4.99L20.49 19l-4.99-5zM9.5 14A4.5 4.5 0 119.5 5a4.5 
-                   4.5 0 010 9z"/>
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 
+                   109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 
+                   19l-4.99-5zM9.5 14A4.5 4.5 0 119.5 5a4.5 4.5 0 010 9z"/>
         </svg>
         <input type="text" name="q" placeholder="Search Google or type a URL"/>
         <svg class="mic-icon" viewBox="0 0 24 24">
-          <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9
+          <path d="M12 15c1.66 0 3-1.34 3-3V6c0-1.66-1.34-3-3-3S9 
                    4.34 9 6v6c0 1.66 1.34 3 3 3z"/>
-          <path d="M17.3 11c0 2.89-2.36 5.27-5.27 5.27S6.73 
-                   13.89 6.73 11H5c0 3.59 2.61 6.56 6 7.31V21h2v-2.69c3.39
+          <path d="M17.3 11c0 2.89-2.36 5.27-5.27 5.27S6.73 13.89 
+                   6.73 11H5c0 3.59 2.61 6.56 6 7.31V21h2v-2.69c3.39
                    -.75 6-3.72 6-7.31h-1.7z"/>
         </svg>
       </div>
@@ -259,29 +210,27 @@
     let UNSPLASH_ACCESS_KEY = localStorage.getItem(KEY_STORAGE)    || '';
     let QUERY               = localStorage.getItem(QUERY_STORAGE) || 'nature background';
 
-    const addBtn            = document.getElementById('addShortcut');
-    const container         = document.getElementById('shortcutsContainer');
-    const modal             = document.getElementById('modal');
-    const modalTitle        = document.getElementById('modalTitle');
-    const saveBtn           = document.getElementById('saveBtn');
-    const cancelBtn         = document.getElementById('cancelBtn');
-    const deleteBtn         = document.getElementById('deleteBtn');
-    const nameInput         = document.getElementById('siteName');
-    const urlInput          = document.getElementById('siteURL');
-
-    const customizeBtn      = document.getElementById('customizeBtn');
-    const customizeModal    = document.getElementById('customizeModal');
-    const unsplashKeyInput  = document.getElementById('unsplashKeyInput');
-    const searchQueryInput  = document.getElementById('searchQueryInput');
-    const saveCustomizeBtn  = document.getElementById('saveCustomizeBtn');
-    const cancelCustomizeBtn= document.getElementById('cancelCustomizeBtn');
-
+    const addBtn            = document.getElementById('addShortcut'),
+          container         = document.getElementById('shortcutsContainer'),
+          modal             = document.getElementById('modal'),
+          modalTitle        = document.getElementById('modalTitle'),
+          saveBtn           = document.getElementById('saveBtn'),
+          cancelBtn         = document.getElementById('cancelBtn'),
+          deleteBtn         = document.getElementById('deleteBtn'),
+          nameInput         = document.getElementById('siteName'),
+          urlInput          = document.getElementById('siteURL'),
+          customizeBtn      = document.getElementById('customizeBtn'),
+          customizeModal    = document.getElementById('customizeModal'),
+          unsplashKeyInput  = document.getElementById('unsplashKeyInput'),
+          searchQueryInput  = document.getElementById('searchQueryInput'),
+          saveCustomizeBtn  = document.getElementById('saveCustomizeBtn'),
+          cancelCustomizeBtn= document.getElementById('cancelCustomizeBtn');
     let isEditing = false, currentElement = null;
 
     function getFaviconUrl(siteUrl) {
       try {
         const host = new URL(siteUrl).hostname;
-        return `https://www.google.com/s2/favicons?domain=${host}&sz=128`;
+        return `https://www.faviconextractor.com/favicon/${host}?larger=true`;
       } catch {
         return null;
       }
@@ -345,10 +294,12 @@
         const img = document.createElement('img'); img.src = fav; img.alt = `${name} favicon`;
         iconDiv.appendChild(img);
       } else {
-        const span = document.createElement('span'); span.textContent = name.charAt(0).toUpperCase();
+        const span = document.createElement('span');
+        span.textContent = name.charAt(0).toUpperCase();
         iconDiv.appendChild(span);
       }
-      const labelDiv = document.createElement('div'); labelDiv.className = 'shortcut-label';
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'shortcut-label';
       labelDiv.textContent = name;
       a.append(iconDiv, labelDiv);
       addEditIcon(a);
@@ -370,7 +321,8 @@
           const img = document.createElement('img'); img.src = fav; img.alt = `${name} favicon`;
           icon.appendChild(img);
         } else {
-          const span = document.createElement('span'); span.textContent = name.charAt(0).toUpperCase();
+          const span = document.createElement('span');
+          span.textContent = name.charAt(0).toUpperCase();
           icon.appendChild(span);
         }
         saveToLocalStorage();
